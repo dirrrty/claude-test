@@ -1,0 +1,43 @@
+Collecting 10 samples (one per second)...
+
+#     CPU %   Mem %    Mem Used  Swap %
+------------------------------------------
+1       0.3%     3.8%      0.60GB     0.0%
+2       0.5%     3.8%      0.60GB     0.0%
+3       1.0%     3.8%      0.60GB     0.0%
+4       2.2%     3.8%      0.60GB     0.0%
+5       1.7%     3.8%      0.60GB     0.0%
+6       0.5%     3.8%      0.60GB     0.0%
+7       0.0%     3.8%      0.60GB     0.0%
+8       0.0%     3.8%      0.60GB     0.0%
+9       0.3%     3.8%      0.60GB     0.0%
+10      0.5%     3.8%      0.60GB     0.0%
+
+==================================================
+  SUMMARY  —  2026-03-18 17:11:50
+==================================================
+
+[CPU]
+  Logical cores : 4
+  Current freq  : 2800 MHz  (max 0 MHz)
+  Avg usage     : 0.7%
+  Peak usage    : 2.2%
+  Min usage     : 0.0%
+
+[Memory]
+  Total RAM     : 15.70 GB
+  Available     : 15.10 GB
+  Avg used      : 3.8%
+  Peak used     : 3.8%
+
+[Swap]
+  Total swap    : 0.00 GB
+  Avg used      : 0.0%
+  Peak used     : 0.0%
+
+[Per-Core CPU %]
+  Core 0     0.9%  
+  Core 1     0.9%  
+  Core 2     0.8%  
+  Core 3     0.5%  
+
