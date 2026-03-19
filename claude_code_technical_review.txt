@@ -1,0 +1,483 @@
+================================================================================
+       CLAUDE CODE — TECHNICAL REVIEW & HOW-TO GUIDE (March 2026)
+================================================================================
+
+Compiled: 2026-03-19
+Sources: Anthropic official docs, web research, community guides
+
+
+────────────────────────────────────────────────────────────────────────────────
+1. WHAT IS CLAUDE CODE?
+────────────────────────────────────────────────────────────────────────────────
+
+Claude Code is an agentic AI coding assistant developed by Anthropic. Unlike
+a simple chat interface, it operates as a full software development agent
+that can:
+
+  - Read and understand entire codebases
+  - Write, edit, and refactor files on disk
+  - Execute terminal/shell commands
+  - Manage Git workflows (commits, branches, PRs)
+  - Connect to external services via MCP (Model Context Protocol)
+  - Delegate subtasks to specialized sub-agents
+
+As of early 2026, approximately 4% of all public GitHub commits (~135,000/day)
+are authored by Claude Code — a 42,896× growth since its research preview.
+Anthropic itself reports that 90% of its own code is now AI-written.
+
+Current model: Claude Opus 4.6 (released February 5, 2026)
+  - 1 million token context window (enabled by default for Max/Team/Enterprise)
+  - 128K max output tokens
+  - Adaptive thinking and agent team support
+
+
+────────────────────────────────────────────────────────────────────────────────
+2. WHAT CAN IT BE USED FOR?
+────────────────────────────────────────────────────────────────────────────────
+
+A. CODE GENERATION & PROTOTYPING
+   - Rapidly scaffold new features, APIs, or entire applications
+   - Enable "auto-accept mode" to let Claude write/test/iterate autonomously
+   - Ideal for unfamiliar domains — let Claude produce an 80% solution, then
+     review and refine
+
+B. CODEBASE NAVIGATION & UNDERSTANDING
+   - Explains unfamiliar code, data pipelines, and dependency chains
+   - Maps upstream data sources and downstream consumers
+   - Replaces traditional data catalog tools for new team members
+
+C. DEBUGGING & REFACTORING
+   - Identifies root causes of bugs with access to full context
+   - Suggests and applies targeted refactors
+   - Runs tests and iterates until tests pass
+
+D. TEST GENERATION
+   - Writes tests that match your project's existing patterns and frameworks
+   - Examines existing test files to mirror style and assertion conventions
+   - Verifies specific behaviors when given explicit requirements
+
+E. GIT WORKFLOWS & PRs
+   - Generates descriptive commit messages
+   - Creates pull requests via GitHub CLI (gh pr create)
+   - Auto-reviews PRs when GitHub App is installed (/install-github-app)
+   - Links sessions to PRs; resume with: claude --from-pr <number>
+
+F. AI PAIR PROGRAMMING
+   - Reviews your code and identifies edge cases
+   - Explains complex logic in plain language
+   - Suggests architectural improvements collaboratively
+
+G. SECURITY REVIEWS
+   - Delegate via sub-agent: "After writing the code, use a sub-agent to
+     perform a security review" — keeps context isolated and focused
+
+H. RESEARCH ACCELERATION
+   - Reduces documentation research time by ~80% (1 hour → 10–20 minutes)
+
+WHEN NOT TO USE AGENTIC CODING:
+   - Security-critical or cryptographic logic (requires human review)
+   - Financial or compliance-heavy systems
+   - Highly optimized performance-critical paths
+   - Any context requiring mandatory human oversight
+
+
+────────────────────────────────────────────────────────────────────────────────
+3. PREREQUISITES & INSTALLATION (CLI)
+────────────────────────────────────────────────────────────────────────────────
+
+Requirements:
+  - Node.js 18 or newer
+  - A Claude account with one of:
+      * Claude Pro or Max plan
+      * Team or Enterprise plan (premium seat)
+      * Claude Console account (pay-as-you-go API credits)
+
+Install globally:
+  npm install -g @anthropic-ai/claude-code
+
+Launch:
+  claude
+
+This opens an interactive terminal session in your current directory.
+
+
+────────────────────────────────────────────────────────────────────────────────
+4. HOW TO USE CLAUDE CODE — WEB UI (claude.ai)
+────────────────────────────────────────────────────────────────────────────────
+
+STEP 1 — ACCESS
+  Navigate to https://claude.ai and log in with your Claude account.
+  Claude Code web sessions are initiated from the CLI using --remote flags,
+  or directly from the claude.ai interface.
+
+STEP 2 — START A REMOTE SESSION FROM CLI
+  From your local terminal, start a remote web session:
+    claude --remote
+  This creates a cloud session visible at claude.ai. You can close your
+  terminal and the agent continues running in the cloud.
+
+STEP 3 — MONITOR & STEER REMOTELY
+  - Use /tasks in the CLI to check the status of running sessions
+  - Open claude.ai or the Claude mobile app to view progress
+  - Provide feedback, answer Claude's questions, or redirect mid-task
+
+STEP 4 — RUN PARALLEL TASKS
+  Each --remote invocation creates an independent web session. You can kick
+  off multiple tasks simultaneously:
+    claude --remote "Fix the login bug"
+    claude --remote "Add unit tests for the payments module"
+
+STEP 5 — PLAN MODE (recommended for complex tasks)
+  Start locally in plan mode so Claude reads files and proposes an approach
+  without making changes:
+    claude --plan
+  Review and refine the plan. Once satisfied, send to remote for execution.
+
+STEP 6 — VISIBILITY & SHARING SETTINGS
+  Go to Settings > Claude Code > Sharing settings on claude.ai to configure:
+    - Pro/Max plans: Private or Public visibility
+    - Team/Enterprise plans: Private or Team visibility
+  You can also withhold your name from shared sessions here.
+
+STEP 7 — ARTIFACTS (Web UI Feature)
+  When asking Claude to produce code, documents, or web pages via the web
+  chat, results appear in the Artifact panel (right side of screen).
+    - Toggle between "Preview" (rendered output) and "Code" (source)
+    - Highlight specific sections and ask Claude to edit only that part
+    - Create Mermaid diagrams (flowcharts, sequence diagrams, mind maps)
+    - Publish and share Artifacts via a public link
+
+KEY WEB UI SHORTCUTS:
+  - Escape        Stop Claude mid-task (safer than Ctrl+C)
+  - Escape x2     Show message history / jump to a previous checkpoint
+  - /clear        Wipe conversation context for a fresh start
+  - /rewind       Access checkpointing to undo file changes
+  - /tasks        List and monitor remote sessions
+  - /install-github-app   Set up automatic PR review
+
+
+────────────────────────────────────────────────────────────────────────────────
+5. HOW TO USE CLAUDE CODE — VS CODE EXTENSION
+────────────────────────────────────────────────────────────────────────────────
+
+STEP 1 — INSTALL THE EXTENSION
+  1. Open VS Code
+  2. Press Ctrl+Shift+X (Windows/Linux) or Cmd+Shift+X (Mac) to open
+     the Extensions panel
+  3. Search for "Claude Code"
+  4. Ensure the publisher is "Anthropic" (avoid third-party lookalikes)
+  5. Click Install
+  6. If it does not appear, run "Developer: Reload Window" from the
+     Command Palette (Ctrl+Shift+P / Cmd+Shift+P)
+
+  VS Code minimum version required: 1.98.0
+  Also works with: Cursor, Windsurf, VSCodium
+
+STEP 2 — OPEN CLAUDE CODE IN VS CODE
+  Three ways to open the Claude Code panel:
+
+  a) Spark icon in the Editor Toolbar (top-right corner of the editor)
+     — only appears when a file is open
+
+  b) Activity Bar spark icon (left sidebar)
+     — always visible; opens session list or starts a new session
+
+  c) Status Bar "✱ Claude Code" (bottom-right corner)
+     — works even with no file open
+
+STEP 3 — AUTHENTICATE
+  On first launch, the extension will prompt you to log into your Claude
+  account. Use the same credentials as claude.ai.
+
+STEP 4 — START A CONVERSATION
+  Type your request in the chat panel at the bottom of the Claude Code view.
+  Claude automatically sees:
+    - Your currently open file
+    - Any text you have selected
+
+  To reference a specific file or line range in your prompt:
+    Press Alt+K (Windows/Linux) or Option+K (Mac) to insert an @-mention:
+    Example: @src/auth.ts#45-78
+
+STEP 5 — REVIEW DIFFS BEFORE ACCEPTING
+  When Claude wants to edit a file, it shows a side-by-side diff:
+    - Left panel: original code
+    - Right panel: proposed changes
+  Click "Accept" or "Reject" for each proposed change.
+
+STEP 6 — PLAN MODE (in VS Code)
+  Before Claude makes any changes, enable Plan Mode:
+    - Toggle it in the Claude Code panel header
+  In Plan Mode, Claude only reads files. Review and edit its plan, then
+  switch back to normal mode to execute.
+
+STEP 7 — AUTO-ACCEPT MODE
+  For rapid prototyping or trusted tasks, enable Auto-Accept in the panel
+  header. Claude will apply all edits automatically without prompting.
+  WARNING: Use with caution and ensure auto-save is enabled in VS Code
+  (File > Auto Save) so Claude always operates on current file state.
+
+STEP 8 — MANAGE PLUGINS (MCP)
+  Type /plugins in the chat box to open the Manage Plugins interface.
+  The dialog has two tabs:
+    - Plugins: installed MCP servers and tools
+    - Marketplaces: browse available plugins to add
+
+STEP 9 — SWITCH TO TERMINAL MODE (optional)
+  If you prefer the CLI-style interface inside VS Code:
+  Go to Settings (Ctrl+, / Cmd+,) > Extensions > Claude Code
+  Check the "Use Terminal" checkbox.
+  Alternatively, type this in the Command Palette:
+    "Claude Code: Use Terminal"
+
+STEP 10 — MULTIPLE SESSIONS / TABS
+  - Open multiple Claude Code conversations in separate tabs
+  - Access session history from the Activity Bar spark icon
+  - The extension and a separate terminal CLI session can run simultaneously
+    (they share the same subscription but have independent contexts)
+
+KEY VS CODE TIPS:
+  - Enable auto-save to prevent Claude from editing stale buffer content
+  - Use /clear between unrelated tasks to reset context
+  - Use sub-agents for complex multi-file operations (mention "use a
+    sub-agent for X" in your prompt)
+  - Extended Thinking toggle (in panel header) gives Claude more reasoning
+    time for complex architectural decisions
+
+
+────────────────────────────────────────────────────────────────────────────────
+6. CLAUDE.md — YOUR PROJECT'S PERSISTENT CONTEXT FILE
+────────────────────────────────────────────────────────────────────────────────
+
+CLAUDE.md is a special Markdown file that Claude automatically reads at the
+start of every session. It is the single most effective way to guide Claude's
+behavior on your project.
+
+Place it at: <project-root>/CLAUDE.md
+
+WHAT TO INCLUDE:
+  - Project overview and architecture summary
+  - Technology stack and framework versions
+  - Code style and formatting rules
+  - Which terminal commands to use (e.g., "use pnpm, not npm")
+  - Testing conventions (e.g., "always run pytest -v after changes")
+  - Branch naming and commit message conventions
+  - Which MCP tools are available and when to use them
+  - Workflows the team always follows (e.g., "create a PR for every feature")
+  - Files or directories Claude should avoid modifying
+
+EXAMPLE CLAUDE.md STRUCTURE:
+  # Project: MyApp
+
+  ## Stack
+  - Backend: Python 3.12 / FastAPI
+  - Frontend: React 18 / TypeScript / Vite
+  - Database: PostgreSQL via SQLAlchemy
+  - Tests: pytest (backend), Vitest (frontend)
+
+  ## Commands
+  - Start dev server: pnpm dev
+  - Run all tests: pnpm test && pytest -v
+  - Lint: pnpm lint && ruff check .
+
+  ## Conventions
+  - All new features must have unit tests
+  - Use conventional commits: feat:, fix:, chore:
+  - Never modify migration files directly
+
+
+────────────────────────────────────────────────────────────────────────────────
+7. HOOKS — AUTOMATED, DETERMINISTIC ACTIONS
+────────────────────────────────────────────────────────────────────────────────
+
+Hooks are shell scripts that run automatically at specific points in Claude's
+workflow. Unlike CLAUDE.md instructions (advisory), hooks are guaranteed to
+execute — Claude cannot skip or ignore them.
+
+COMMON HOOK TRIGGERS:
+  - PreToolUse    Before Claude runs any tool (e.g., block certain commands)
+  - PostToolUse   After Claude runs a tool (e.g., run linter after file edit)
+  - SessionStart  When a new session begins (e.g., load environment vars)
+  - Stop          When Claude finishes (e.g., send a notification)
+
+Configure hooks in: ~/.claude/settings.json or .claude/settings.json
+
+EXAMPLE — Run linter after every file edit:
+  {
+    "hooks": {
+      "PostToolUse": [
+        {
+          "matcher": "Write|Edit",
+          "hooks": [{ "type": "command", "command": "pnpm lint --fix" }]
+        }
+      ]
+    }
+  }
+
+
+────────────────────────────────────────────────────────────────────────────────
+8. MCP — MODEL CONTEXT PROTOCOL
+────────────────────────────────────────────────────────────────────────────────
+
+MCP extends Claude Code with access to external tools, APIs, and data sources
+via a standardized protocol. As of January 2026, the MCP ecosystem has:
+  - 100 million monthly downloads
+  - 3,000+ servers indexed on mcp.so
+
+WITHOUT MCP: Claude can only read local files and run bash commands.
+
+WITH MCP EXAMPLES:
+  - Query your production PostgreSQL / MongoDB database
+  - Create and update Jira tickets
+  - Review and comment on GitHub PRs
+  - Check Sentry error reports
+  - Interact with Slack, Notion, Linear, and hundreds of other services
+
+INSTALL AN MCP SERVER (example — GitHub):
+  claude mcp add github-mcp-server
+
+Or configure manually in settings.json under the "mcpServers" key.
+
+
+────────────────────────────────────────────────────────────────────────────────
+9. PERMISSIONS & SAFETY
+────────────────────────────────────────────────────────────────────────────────
+
+By default, Claude requests confirmation before:
+  - Writing or modifying files
+  - Running shell/bash commands
+  - Using MCP tools
+
+PERMISSION ALLOWLISTS:
+  Permit specific safe tools to run without prompting. Example in settings:
+    {
+      "permissions": {
+        "allow": ["npm run lint", "git status", "git diff"]
+      }
+    }
+
+SANDBOXING:
+  Enable OS-level isolation to restrict filesystem and network access while
+  allowing Claude to work more freely within defined boundaries.
+  Configure via: claude --sandbox
+
+CHECKPOINTING / UNDO:
+  Claude automatically tracks all file edits. To undo:
+    - Press Escape twice in the terminal (shows rewind options)
+    - Type /rewind in VS Code or web chat
+    - Use /checkpoint to manually save a restore point before risky changes
+
+
+────────────────────────────────────────────────────────────────────────────────
+10. KEY COMMANDS & SHORTCUTS REFERENCE
+────────────────────────────────────────────────────────────────────────────────
+
+SLASH COMMANDS (work in all interfaces):
+  /clear              Clear conversation context
+  /rewind             Open checkpoint/undo interface
+  /tasks              List and manage remote sessions
+  /plugins            Manage MCP plugins (VS Code)
+  /checkpoint         Save current state as a restore point
+  /install-github-app Configure automatic PR review
+  /voice              Toggle voice mode (push-to-talk via Spacebar)
+  /loop <interval>    Run a command on a recurring interval (e.g. /loop 5m)
+  /plan               Enter plan-only mode (read + propose, no edits)
+
+CLI FLAGS:
+  claude --remote     Start a remote cloud session
+  claude --plan       Start in plan mode
+  claude --sandbox    Run with OS-level isolation
+  claude --from-pr N  Resume a session linked to PR number N
+
+KEYBOARD SHORTCUTS (terminal):
+  Escape              Stop Claude mid-task
+  Escape x2           Show message history / jump to previous checkpoint
+
+KEYBOARD SHORTCUTS (VS Code extension):
+  Alt+K / Option+K    Insert @-mention file reference into prompt
+
+
+────────────────────────────────────────────────────────────────────────────────
+11. BEST PRACTICES SUMMARY
+────────────────────────────────────────────────────────────────────────────────
+
+  1. SET UP CLAUDE.md FIRST — It's the highest-leverage action you can take.
+     A well-written CLAUDE.md dramatically reduces errors and token usage.
+
+  2. PLAN BEFORE YOU CODE — Use /plan or Plan Mode to review Claude's
+     approach before any files are touched. Never let Claude write code
+     without an approved plan for complex tasks.
+
+  3. COMMIT BEFORE BIG CHANGES — Run `git commit` before asking Claude to
+     make large-scale refactors. This gives you a safe rollback point.
+
+  4. USE /clear BETWEEN TASKS — Context from a previous task can confuse
+     Claude when you switch topics. Clear often.
+
+  5. BE SPECIFIC IN PROMPTS — Instead of "build a dashboard", say:
+     "Build a React dashboard component that displays daily active users
+     from the /api/metrics endpoint, using our existing Chart.js setup,
+     with loading and error states."
+
+  6. USE SUB-AGENTS FOR COMPLEXITY — For multi-step tasks, explicitly ask
+     Claude to use sub-agents:
+     "After implementing the feature, use a sub-agent to write tests."
+
+  7. ENABLE AUTO-SAVE IN VS CODE — Prevents Claude from editing stale
+     buffer content that differs from what's on disk.
+
+  8. LEVERAGE EXTENDED THINKING — Toggle it on for architectural decisions,
+     complex debugging, or when Claude's first answer seems off.
+
+  9. USE HOOKS FOR REPEATABILITY — For things you always want to happen
+     (e.g., lint after edit, test after commit), use hooks — not CLAUDE.md
+     instructions — because hooks are guaranteed to execute.
+
+  10. AVOID MIXED SESSIONS — One session, one goal. If you catch yourself
+      correcting Claude repeatedly on the same task, start a fresh session
+      with a clearer, more specific prompt.
+
+
+────────────────────────────────────────────────────────────────────────────────
+12. PRICING & ACCESS TIERS
+────────────────────────────────────────────────────────────────────────────────
+
+  Plan            Claude Code Access
+  ──────────────  ──────────────────────────────────────────────────────────
+  Pro             Full CLI + web; 1M context (limited); Public sharing
+  Max             Full CLI + web; 1M context (default on); Public sharing
+  Team            Full CLI + web; 1M context (default on); Team sharing
+  Enterprise      Full CLI + web; 1M context (default on); Team sharing
+  Console (API)   Pay-as-you-go; full CLI access via API key
+
+New features (voice mode, /loop, parallel remote sessions) are available
+on all plans but may roll out progressively.
+
+
+────────────────────────────────────────────────────────────────────────────────
+SOURCES
+────────────────────────────────────────────────────────────────────────────────
+
+- Claude Code Official Docs: https://code.claude.com/docs/en/
+- Claude Code on the Web: https://code.claude.com/docs/en/claude-code-on-the-web
+- Common Workflows: https://code.claude.com/docs/en/common-workflows
+- Best Practices: https://code.claude.com/docs/en/best-practices
+- VS Code Extension Docs: https://code.claude.com/docs/en/vs-code
+- VS Code Marketplace: https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code
+- VS Code Setup Guide (eesel.ai): https://www.eesel.ai/blog/vs-code-claude-code
+- VS Code Setup Guide (sitepoint): https://www.sitepoint.com/how-to-setup-claude-code-vs-code-complete-guide/
+- Claude Code Best Practices (eesel.ai): https://www.eesel.ai/blog/claude-code-best-practices
+- Claude Code March 2026 Updates: https://pasqualepillitteri.it/en/news/381/claude-code-march-2026-updates
+- Claude Code Complete Guide 2026 (jitendrazaa): https://www.jitendrazaa.com/blog/ai/claude-code-complete-guide-2026-from-basics-to-advanced-mcp-2/
+- Claude Code Complete Guide 2026 (claude-world): https://claude-world.com/articles/claude-code-complete-guide-2026/
+- How Anthropic Teams Use Claude Code (PDF): https://www-cdn.anthropic.com/58284b19e702b49db9302d5b6f135ad8871e7658.pdf
+- Claude Code CLI Cheatsheet (Shipyard): https://shipyard.build/blog/claude-code-cheat-sheet/
+- Builder.io Guide: https://www.builder.io/blog/how-to-use-claude-code
+- CloudCLI Web UI: https://github.com/siteboon/claudecodeui
+- Claudia GUI: https://claudia.so/
+- Awesome Claude Code (community resources): https://github.com/hesreallyhim/awesome-claude-code
+- Claude Code Product Page: https://claude.com/product/claude-code
+
+================================================================================
+END OF DOCUMENT
+================================================================================
